@@ -1,0 +1,23 @@
+# deal data, document cache, runs and exports: never committed
+data/
+# secrets
+.env
+.env.*
+!.env.example
+# local Python environments and caches
+.venv*/
+__pycache__/
+*.pyc
+.pytest_cache/
+# local Claude settings (personal)
+.claude/settings.local.json
+# documents and samples: kept out of the repository (company documents, decks, Stylus replies)
+*.pdf
+*.zip
+*.pptx
+*.docx
+~$*
+IPO01-*.txt
+UI_PROCESS_FLOW.html
+# ...except the leadership deck, which belongs to the project
+!docs/leadership/*.pptx
