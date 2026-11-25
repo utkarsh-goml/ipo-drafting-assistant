@@ -1,0 +1,36 @@
+# Sections to extract from comparable DRHPs / RHPs.
+# aliases:        heading variants that mark the START of the section
+# next_headings:  fallback END markers, used only when no TOC / bookmarks are found
+#                 (normally the end is the next entry in the document's own TOC)
+
+sections:
+  our_business:
+    title: "Our Business"
+    aliases:
+      - "OUR BUSINESS"
+      - "BUSINESS OVERVIEW"
+    next_headings:
+      - "KEY REGULATIONS AND POLICIES"
+      - "KEY REGULATIONS AND POLICIES IN INDIA"
+      - "KEY INDUSTRY REGULATIONS AND POLICIES"
+      - "KEY INDUSTRY REGULATIONS AND POLICIES IN INDIA"
+      - "REGULATIONS AND POLICIES"
+      - "HISTORY AND CERTAIN CORPORATE MATTERS"
+
+  risk_factors:
+    title: "Risk Factors"
+    aliases:
+      - "RISK FACTORS"
+    next_headings:
+      - "INTRODUCTION"
+      - "THE OFFER"
+      - "SUMMARY OF THE OFFER"
+      - "THE ISSUE"
+      - "SUMMARY OF FINANCIAL INFORMATION"
+
+# Matching thresholds (rapidfuzz ratio, 0-100)
+match:
+  heading_min_score: 90     # whole-line match needed to accept a heading
+  top_lines: 8              # a section-start heading must be within the first N lines of a page
+  toc_scan_pages: 25        # how many leading pages to scan for the table of contents
+  verify_window: 4          # +/- pages around the TOC-predicted page to look for the heading

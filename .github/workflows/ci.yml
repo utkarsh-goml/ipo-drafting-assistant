@@ -1,0 +1,68 @@
+# CI: tests on Python 3.8 (office VDI versions) and 3.11 (agent), then build the image and check it answers.
+# Render deploys `main` only after these checks pass (render.yaml: autoDeployTrigger: checksPass).
+# No secrets are used: the agent runs with a mock model; the OpenAI key is a placeholder that is never called.
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  vdi-py38:
+    name: Existing app on Python 3.8 (VDI versions)
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.8"
+      - run: pip install -r requirements-py38.txt
+      - run: python -m pytest tests -q
+
+  agent-py311:
+    name: App and agent on Python 3.11
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements-lock.txt
+      - run: python -m pytest tests tests_agent -q
+
+  container:
+    name: Image builds and answers its health check
+    needs: [vdi-py38, agent-py311]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image
+        run: docker build -t ipo-drafting:ci .
+      - name: Start container (Render-like settings, placeholder key)
+        run: |
+          docker run -d --name app -p 8501:10000 -e PORT=10000 \
+            -e DEPLOYMENT_ENVIRONMENT=render -e APP_PASSWORD=ci-only-password \
+            -e OPENAI_API_KEY=sk-placeholder-never-called -e OPENAI_MODEL_BLUEPRINT=gpt-6-luna \
+            -e OPENAI_MODEL_DRAFT=gpt-6-luna -e OPENAI_MODEL_EVAL=gpt-6-luna -e OPENAI_TOKENIZER=o200k_base \
+            -e OPENAI_TIMEOUT_S=180 -e OPENAI_TEMPERATURE=0 -e MAX_FIX_ROUNDS=2 -e MAX_GAP_ROUNDS=1 \
+            -e MAX_INPUT_TOKENS=200000 -e MAX_CONCURRENCY=2 -e FAITHFULNESS_MIN=0.90 -e RELEVANCE_MIN=0.50 \
+            -e OTEL_ENABLED=false -e OTEL_SERVICE_NAME=ipo-agent -e OTEL_METRICS_EXPORTER=none \
+            -e OTEL_CAPTURE_CONTENT=false \
+            ipo-drafting:ci
+      - name: Health endpoint answers
+        run: curl --fail --silent --retry 30 --retry-delay 2 --retry-all-errors http://localhost:8501/_stcore/health
+      - name: Runs as a non-root user, with no deal data or keys in the image
+        run: |
+          test "$(docker exec app id -u)" = "10001"
+          docker exec app sh -c 'test ! -e /app/data && test ! -e /app/.env && test ! -e /app/tests'
+      - name: Mock deal end to end inside the image (tests mounted, not baked in)
+        run: |
+          docker run --rm -v "$PWD/tests:/app/tests:ro" -v "$PWD/tests_agent:/app/tests_agent:ro" \
+            -e IPO_DATA_DIR=/tmp/ipo/data ipo-drafting:ci \
+            python -m pytest -q -p no:cacheprovider tests_agent/test_graph_c.py tests_agent/test_ui_agent_page.py
+      - name: Container log
+        if: always()
+        run: docker logs app

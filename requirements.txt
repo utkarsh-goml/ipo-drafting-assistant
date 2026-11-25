@@ -1,0 +1,13 @@
+# Works on Python 3.8 to 3.10+. pip picks versions that match your Python automatically.
+streamlit>=1.31
+pypdf>=4.0
+pdfplumber>=0.10
+rapidfuzz>=3.0
+pydantic>=2.0
+PyYAML>=6.0
+pandas>=1.5
+# reportlab 4.3+ needs Python 3.9 or newer
+reportlab>=4.0,<4.3; python_version < "3.9"
+reportlab>=4.0; python_version >= "3.9"
+python-docx>=1.0
+pytest>=7.0

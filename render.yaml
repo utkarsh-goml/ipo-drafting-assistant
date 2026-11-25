@@ -1,0 +1,63 @@
+# Render Blueprint: one free web service running Streamlit with the agent (LANGGRAPH_PLAN.md §13).
+# Secrets and per-user values are `sync: false`: Render asks for them when the Blueprint is first created.
+# They are typed into the Render dashboard and never committed.
+services:
+  - type: web
+    name: ipo-drafting
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    branch: main
+    autoDeployTrigger: checksPass        # deploy only after GitHub Actions CI passes
+    healthCheckPath: /_stcore/health
+    envVars:
+      # access and where it runs
+      - key: APP_PASSWORD
+        sync: false
+      - key: DEPLOYMENT_ENVIRONMENT
+        value: render
+      - key: IPO_DATA_DIR
+        value: /tmp/ipo/data
+      # OpenAI
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_MODEL_BLUEPRINT
+        value: gpt-6-luna
+      - key: OPENAI_MODEL_DRAFT
+        value: gpt-6-luna
+      - key: OPENAI_MODEL_EVAL
+        value: gpt-6-luna
+      - key: OPENAI_TOKENIZER
+        value: o200k_base
+      - key: OPENAI_TIMEOUT_S
+        value: "180"
+      - key: OPENAI_TEMPERATURE
+        value: "0"
+      - key: OPENAI_PRICES               # JSON, copied from OpenAI's pricing page; {} = costs shown as "price not set"
+        sync: false
+      # limits and quality gates (to be tuned in build step 6)
+      - key: MAX_FIX_ROUNDS
+        value: "2"
+      - key: MAX_GAP_ROUNDS
+        value: "1"
+      - key: MAX_INPUT_TOKENS
+        value: "200000"
+      - key: MAX_CONCURRENCY
+        value: "2"
+      - key: FAITHFULNESS_MIN
+        value: "0.90"
+      - key: RELEVANCE_MIN
+        value: "0.50"
+      # telemetry -> Phoenix Cloud (traces only, never document text)
+      - key: OTEL_ENABLED
+        value: "true"
+      - key: OTEL_SERVICE_NAME
+        value: ipo-agent
+      - key: OTEL_METRICS_EXPORTER
+        value: none
+      - key: OTEL_CAPTURE_CONTENT
+        value: "false"
+      - key: OTEL_EXPORTER_OTLP_ENDPOINT   # https://app.phoenix.arize.com/s/<your-space>
+        sync: false
+      - key: PHOENIX_API_KEY
+        sync: false

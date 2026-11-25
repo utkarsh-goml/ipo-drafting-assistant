@@ -1,0 +1,85 @@
+# Company-document processing: annual-report parts, retrieval queries, sector packs.
+
+# ---------------------------------------------------------------------------
+# Annual-report parts. A unit whose top lines start with a heading matching a pattern
+# starts that part; later units inherit it until the next match. Patterns are matched
+# at the START of short lines only (headings), never inside sentences. Order matters.
+# Optional prefixes like "Revised" / "(Revised)" suffixes are allowed.
+heading_max_chars: 90
+parts:
+  - {name: "Notes - Consolidated",            pattern: "^notes (forming part of|to) (the )?consolidated financial statements"}
+  - {name: "Notes - Standalone",              pattern: "^notes (forming part of|to) (the )?(standalone )?financial statements"}
+  - {name: "Financial Statements - Consolidated", pattern: "^consolidated (balance sheet|statement of (profit|cash|changes|assets))"}
+  - {name: "Financial Statements - Standalone",   pattern: "^(standalone )?(balance sheet|statement of (profit|cash|changes|assets))"}
+  - {name: "Auditor's Report",                pattern: "^(revised )?(independent )?auditor'?s'? report( to the members)?( \\(revised\\))?$"}
+  - {name: "Secretarial Audit",               pattern: "^(form no\\. mr-3 )?secretarial audit report"}
+  - {name: "BRSR",                            pattern: "^business responsibility (and|&) sustainability report"}
+  - {name: "Corporate Governance",            pattern: "^(report on )?corporate governance( report)?$"}
+  - {name: "MD&A",                            pattern: "^management'?s? discussion (and|&) analysis"}
+  - {name: "Directors' Report",               pattern: "^(directors'?|board'?s'?) report"}
+  - {name: "Notice of AGM",                   pattern: "^notice( of (the )?annual general meeting)?$"}
+
+# Parts that describe the business (boosted for "Our Business" retrieval)
+business_parts: ["Corporate Overview", "Directors' Report", "MD&A", "BRSR", "Corporate Governance", "Other"]
+# Parts holding financial detail (boosted for risk-factor evidence)
+financial_parts: ["Financial Statements - Consolidated", "Financial Statements - Standalone",
+                  "Notes - Consolidated", "Notes - Standalone", "Auditor's Report"]
+
+# ---------------------------------------------------------------------------
+# "Our Business" subsections -> retrieval query terms (generic, all sectors).
+# Sector packs below add terms. The final blueprint (Phase 3) may rename/reorder.
+our_business:
+  overview:          {title: "Overview", terms: "overview company incorporated leading largest established presence journey vision mission market share position"}
+  strengths:         {title: "Our Strengths", terms: "strengths competitive advantage leadership brand trusted experienced track record differentiated scale"}
+  strategies:        {title: "Our Strategies", terms: "strategy strategies plan expand growth focus future initiatives roadmap outlook going forward"}
+  products:          {title: "Products and Services", terms: "products services offerings portfolio segments launched new product range solutions"}
+  operations:        {title: "Operations", terms: "operations operational process capacity facilities plant manufacturing production utilisation branches"}
+  customers:         {title: "Customers, Sales and Distribution", terms: "customers clients investors distribution channel distributors dealers network reach sales marketing retail institutional"}
+  technology:        {title: "Technology and Digital", terms: "technology digital IT platform app online automation cyber security systems data analytics"}
+  quality_rnd:       {title: "Quality, R&D and Innovation", terms: "research development innovation quality certification patents design testing"}
+  people:            {title: "Human Resources", terms: "employees human resources talent workforce headcount training attrition culture people"}
+  csr_esg:           {title: "CSR and ESG", terms: "corporate social responsibility CSR sustainability ESG environment community education health"}
+  risk_compliance:   {title: "Risk Management and Compliance", terms: "risk management compliance internal control audit committee policy governance framework"}
+  awards:            {title: "Awards and Recognition", terms: "award awards recognition recognised certified best ranked"}
+  competition:       {title: "Competition", terms: "competition competitors competitive industry peers market players"}
+  properties_ip:     {title: "Properties, IP and Insurance", terms: "property properties office premises lease owned registered office trademark intellectual property insurance"}
+  financial_perf:    {title: "Key Financial and Operating Metrics", terms: "revenue profit growth total income margin performance key performance indicators financial highlights"}
+
+# Risk-factor themes -> query terms (used to attach evidence pages to risk triggers)
+risk_themes:
+  market:          {title: "Market / economic conditions", terms: "market volatility economic slowdown inflation interest rates geopolitical uncertainty"}
+  competition:     {title: "Competition", terms: "competition competitors pricing pressure market share new entrants"}
+  regulatory:      {title: "Regulation", terms: "regulator regulations SEBI RBI circular compliance inspection penalty guidelines amendment"}
+  concentration:   {title: "Concentration", terms: "top ten customers single largest concentration dependence significant portion of revenue"}
+  operational:     {title: "Operational / third parties", terms: "outsourcing third party service providers disruption business continuity operational risk"}
+  cyber:           {title: "Cyber / data", terms: "cyber security data privacy breach information security attack"}
+  people:          {title: "People", terms: "attrition key managerial personnel employees retention talent"}
+  litigation:      {title: "Litigation", terms: "litigation legal proceedings show cause notice court tribunal dispute claim"}
+  related_party:   {title: "Related parties", terms: "related party transactions holding company subsidiary associate key management personnel"}
+  contingent:      {title: "Contingent liabilities", terms: "contingent liabilities commitments guarantees claims not acknowledged as debts"}
+  brand_parent:    {title: "Brand / promoter dependence", terms: "brand parent promoter group joint venture sponsor name trademark licence"}
+
+# ---------------------------------------------------------------------------
+# Sector packs: extra terms per subsection / theme. Picked by fuzzy-matching the
+# deal's sector to `match`. Add packs as the team supplies sector knowledge.
+sector_packs:
+  asset_management:
+    match: ["asset management", "amc", "mutual fund", "wealth", "fund management"]
+    our_business:
+      overview: "AUM QAAUM mutual fund asset management company schemes"
+      products: "schemes equity debt hybrid ETF index fund PMS AIF offshore funds NFO"
+      customers: "SIP folios investors distributors banks IFA B30 cities direct channel"
+      financial_perf: "AUM QAAUM SIP book market share management fees operating profit"
+      operations: "fund management investment process research dealing registrar transfer agent"
+    risk_themes:
+      regulatory: "total expense ratio TER SEBI mutual fund regulations"
+      market: "AUM decline redemption outflows equity market performance"
+  manufacturing:
+    match: ["manufacturing", "industrial", "engineering", "chemicals", "auto", "electronics", "textile"]
+    our_business:
+      operations: "manufacturing facility plant installed capacity capacity utilisation production"
+      customers: "OEM customers export domestic dealers orders order book"
+      quality_rnd: "R&D quality certifications ISO approvals"
+    risk_themes:
+      operational: "raw material supply chain plant shutdown capacity utilisation"
+      concentration: "top customers OEM export country concentration"

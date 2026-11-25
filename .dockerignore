@@ -1,0 +1,20 @@
+# Only code goes into the image: never deal data, keys, local environments or documents.
+data/
+.env
+.env.*
+!.env.example
+.venv*/
+**/__pycache__/
+**/*.pyc
+.pytest_cache/
+.git/
+.github/
+.claude/
+tests/
+tests_agent/
+*.pptx
+*.docx
+*.pdf
+*.zip
+*.html
+IPO01-*.txt
